@@ -1,7 +1,31 @@
+const colors = require('colors');
 const router = require('express').Router();
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
+const dbAuth = require('../db-model.js')
+
+
+router.post('/register', checkUsernameMatch, async (req, res) => {
+  const registration = req.body;
+  if (registration.username, registration.password) {
+    try {
+        const registeredUser = await dbAuth.register(registration);
+        console.log('Successful registration :D' .bgCyan);
+        res.status(201).json(registeredUser);
+    } catch (error) {
+        console.log(error .red);
+        res.status(500).json({
+          error,
+          message: 'server error'
+        });
+    }
+  } else {
+    console.log('username and password required' .yellow)
+    res.status(400).json({
+      message: 'I\'d do that but I need a username AND password first :)'
+    })
+  }
+  //res.end('implement register, please!');
+
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -54,5 +78,15 @@ router.post('/login', (req, res) => {
       the response body should include a string exactly as follows: "invalid credentials".
   */
 });
+
+async function checkUsernameMatch(req, res, next) {
+  const foundUsername = await dbAuth.findByUsername(req.body.username);
+  console.log(foundUsername)
+  if (foundUsername.length !== 0) {
+    res.status(400).json({
+      message: 'username taken'
+    })
+  } else next();
+}
 
 module.exports = router;
