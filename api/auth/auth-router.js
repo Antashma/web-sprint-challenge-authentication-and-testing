@@ -1,6 +1,8 @@
 const colors = require('colors');
 const router = require('express').Router();
 const bcyrpt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const secrets = require('./secrets.js')
 
 const dbAuth = require('../db-model.js')
 
@@ -36,9 +38,10 @@ router.post('/login', async (req, res) => {
     try {
       const foundUser = await dbAuth.login(credentials);
       if (foundUser && bcyrpt.compareSync(credentials.password, foundUser.password)) {
-        res.status(200).json({
+        const token = await jwtGenerator(foundUser)
+        res.status(201).json({
           message: `welcome, ${foundUser.username}`,
-          token: ''
+          token
         })
       } else {
           res.status(400).json({
@@ -93,5 +96,19 @@ async function checkUsernameMatch(req, res, next) {
     })
   } else next();
 }
+
+//WEB TOKEN GEN
+function jwtGenerator(user) {
+  const payload = {
+    subject: user.id,
+    username: user.username,
+  }
+  const secret = secrets.jwt_secret;
+  const options = {
+    expiresIn: '30s'
+  };
+
+  return jwt.sign(payload, secret, options);
+} 
 
 module.exports = router;
