@@ -7,7 +7,7 @@ const dbAuth = require('../db-model.js')
 
 router.post('/register', checkUsernameMatch, async (req, res) => {
   const registration = req.body;
-  if (registration.username, registration.password) {
+  if (registration.username && registration.password) {
     const hash = bcyrpt.hashSync(registration.password, 10);
     registration.password = hash;
     try {
@@ -30,8 +30,34 @@ router.post('/register', checkUsernameMatch, async (req, res) => {
   //res.end('implement register, please!');
 });
 
-router.post('/login', (req, res) => {
-  res.end('implement login, please!');
+router.post('/login', async (req, res) => {
+  const credentials = req.body;
+  if(credentials.username && credentials.password) {
+    try {
+      const foundUser = await dbAuth.login(credentials);
+      if (foundUser && bcyrpt.compareSync(credentials.password, foundUser.password)) {
+        res.status(200).json({
+          message: `welcome, ${foundUser.username}`,
+          token: ''
+        })
+      } else {
+          res.status(400).json({
+            message: 'invalid credentials'
+          })
+      }
+    } catch (error) {
+      console.log(`Sorry, I ran into this error trying while trying to log you in:\n${error}` .bgRed)
+      res.status(500).json({
+        error,
+        message: 'server error'
+      })
+    } 
+  } else {
+        res.status(400).json({
+          message: 'username and password required'
+        })
+    }
+  //res.end('implement login, please!');
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
