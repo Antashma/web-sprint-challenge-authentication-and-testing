@@ -89,7 +89,7 @@ router.post('/login', async (req, res) => {
 async function checkUsernameMatch(req, res, next) {
   const foundUsername = await dbAuth.findByUsername(req.body.username);
   console.log(foundUsername)
-  if (foundUsername.length !== 0) {
+  if (foundUsername) {
     console.log(`Looks like that username is already in use. Think of something cooler.` .yellow)
     res.status(400).json({
       message: 'username taken'

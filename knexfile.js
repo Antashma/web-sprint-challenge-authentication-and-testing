@@ -10,11 +10,11 @@ module.exports = {
   },
   testing: {
     client: 'sqlite3',
-    connection: { filename: './data/test/test.db3' },
+    connection: { filename: './data/test.db3' },
     useNullAsDefault: true,
     migrations: {
-      directory: './data/test/migrations',
+      directory: './data/migrations',
     },
-    seeds: { directory: './data/test/seeds' },
+    seeds: { directory: './data/seeds' },
   }
 };
