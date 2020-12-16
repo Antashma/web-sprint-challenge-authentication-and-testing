@@ -25,9 +25,16 @@ We will hash the user's password using `bcryptjs`, and use JSON Web Tokens and t
 Be prepared to demonstrate your understanding of this week's concepts by answering questions on the following topics.
 
 1. Differences between using _sessions_ or _JSON Web Tokens_ for authentication.
+    Sessions store auth data on the server while JWT store auth data on the client.
+
 2. What does `bcryptjs` do to help us store passwords in a secure manner?
+    'bcryptjs' is a library that can hash passwords.
+
 3. How are unit tests different from integration and end-to-end testing?
+    Unit tests are different because that test one part of a program instead of the enitre program.
+
 4. How does _Test Driven Development_ change the way we write applications and tests?
+    Test Driven Developmet helps us focus on writing the code we mean to write since we are testing the code as we create it, rather tha test the code after we create it.
 
 You are expected to be able to answer questions in these areas.
 
@@ -47,7 +54,7 @@ Your finished project must include all of the following requirements:
 
 - [x] An authentication workflow with functionality for account creation and login, implemented inside `api/auth/auth-router.js`.
 - [x] Middleware used to restrict access to resources from non-authenticated requests, implemented inside `api/middleware/restricted-endpoint.js`.
-- [ ] A minimum of 2 tests per API endpoint, implemented inside `api/server.test.js`.
+- [x] A minimum of 2 tests per API endpoint, implemented inside `api/server.test.js`.
 
 **Notes:**
 
