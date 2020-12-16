@@ -38,11 +38,11 @@ router.post('/login', async (req, res) => {
     try {
       const foundUser = await dbAuth.login(credentials);
       if (foundUser && bcyrpt.compareSync(credentials.password, foundUser.password)) {
-        const token = await jwtGenerator(foundUser)
+        const token = await jwtGenerator(foundUser);
         res.status(201).json({
           message: `welcome, ${foundUser.username}`,
           token
-        })
+        });
       } else {
           res.status(400).json({
             message: 'invalid credentials'
@@ -105,7 +105,7 @@ function jwtGenerator(user) {
   }
   const secret = secrets.jwt_secret;
   const options = {
-    expiresIn: '30s'
+    expiresIn: 30
   };
 
   return jwt.sign(payload, secret, options);
