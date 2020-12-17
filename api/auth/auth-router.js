@@ -1,35 +1,66 @@
+const colors = require('colors');
 const router = require('express').Router();
+const bcyrpt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+const secrets = require('./secrets.js')
 
-router.post('/register', (req, res) => {
-  res.end('implement register, please!');
-  /*
-    IMPLEMENT
-    You are welcome to build additional middlewares to help with the endpoint's functionality.
+const dbAuth = require('../db-model.js')
 
-    1- In order to register a new account the client must provide `username` and `password`:
-      {
-        "username": "Captain Marvel", // must not exist already in the `users` table
-        "password": "foobar"          // needs to be hashed before it's saved
-      }
 
-    2- On SUCCESSFUL registration,
-      the response body should have `id`, `username` and `password`:
-      {
-        "id": 1,
-        "username": "Captain Marvel",
-        "password": "2a$08$jG.wIGR2S4hxuyWNcBf9MuoC4y0dNy7qC/LbmtuFBSdIhWks2LhpG"
-      }
-
-    3- On FAILED registration due to `username` or `password` missing from the request body,
-      the response body should include a string exactly as follows: "username and password required".
-
-    4- On FAILED registration due to the `username` being taken,
-      the response body should include a string exactly as follows: "username taken".
-  */
+router.post('/register', checkUsernameMatch, async (req, res) => {
+  const registration = req.body;
+  if (registration.username && registration.password) {
+    const hash = bcyrpt.hashSync(registration.password, 10);
+    registration.password = hash;
+    try {
+        const registeredUser = await dbAuth.register(registration);
+        console.log(`Thanks for registering, ${registeredUser.username} :D` .bgCyan);
+        res.status(201).json(registeredUser);
+    } catch (error) {
+        console.error(`Sorry, I'm having some trouble doing that :( I got this ${error}` .bgRed);
+        res.status(500).json({
+          error,
+          message: 'server error'
+        });
+    }
+  } else {
+    console.log('I\'d do that but need a username and password first :)' .yellow)
+    res.status(400).json({
+      message: 'username and password required'
+    })
+  }
+  //res.end('implement register, please!');
 });
 
-router.post('/login', (req, res) => {
-  res.end('implement login, please!');
+router.post('/login', async (req, res) => {
+  const credentials = req.body;
+  if(credentials.username && credentials.password) {
+    try {
+      const foundUser = await dbAuth.login(credentials);
+      if (foundUser && bcyrpt.compareSync(credentials.password, foundUser.password)) {
+        const token = await jwtGenerator(foundUser);
+        res.status(201).json({
+          message: `welcome, ${foundUser.username}`,
+          token
+        });
+      } else {
+          res.status(400).json({
+            message: 'invalid credentials'
+          })
+      }
+    } catch (error) {
+      console.log(`Sorry, I ran into this error trying while trying to log you in:\n${error}` .bgRed)
+      res.status(500).json({
+        error,
+        message: 'server error'
+      })
+    } 
+  } else {
+        res.status(400).json({
+          message: 'username and password required'
+        })
+    }
+  //res.end('implement login, please!');
   /*
     IMPLEMENT
     You are welcome to build additional middlewares to help with the endpoint's functionality.
@@ -54,5 +85,30 @@ router.post('/login', (req, res) => {
       the response body should include a string exactly as follows: "invalid credentials".
   */
 });
+
+async function checkUsernameMatch(req, res, next) {
+  const foundUsername = await dbAuth.findByUsername(req.body.username);
+  console.log(foundUsername)
+  if (foundUsername) {
+    console.log(`Looks like that username is already in use. Think of something cooler.` .yellow)
+    res.status(400).json({
+      message: 'username taken'
+    })
+  } else next();
+}
+
+//WEB TOKEN GEN
+function jwtGenerator(user) {
+  const payload = {
+    subject: user.id,
+    username: user.username,
+  }
+  const secret = secrets.jwt_secret;
+  const options = {
+    expiresIn: 30
+  };
+
+  return jwt.sign(payload, secret, options);
+} 
 
 module.exports = router;
